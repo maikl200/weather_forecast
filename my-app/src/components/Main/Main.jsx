@@ -14,6 +14,7 @@ import Loader from "../Loader/Loader";
 const Main = () => {
   const [search, setSearch] = useState('')
   const getWeather = useSelector((store) => store.getAPIReducer)
+  const [error, setError] = useState(<Loader/>)
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -29,20 +30,18 @@ const Main = () => {
     speed: getWeather.wind && Math.round(getWeather.wind.speed),
     image: getWeather.weather && weatherIcon[getWeather.weather[0].main]
   }
-  const weatherSearch = () => {
+  const weatherSearch = (getWeather) => {
     dispatch(asyncGetAPI(search))
     setSearch('')
+    if (!getWeather.main) {
+      setError('')
+    }
   }
+
 
   return (
       <main className={classes.main}>
         <div className={classes.main__container}>
-          {getWeather.cod === '404' ?
-              <span
-                  className={classes.main__container_error}>Введенный город не найден. Может быть вы имели ввиду <span
-                  onClick={() => dispatch(asyncGetAPI('Москва'))}>Москва?</span>
-          </span>
-              : ''}
           <div className={classes.main__container__geo}>
             <input
                 type={"text"}
@@ -52,6 +51,14 @@ const Main = () => {
             />
             <button onClick={weatherSearch}>Найти</button>
           </div>
+          {getWeather.cod === '404' ?
+              <span
+                  className={classes.main__container_error}>Введенный город не найден. Может быть вы имели ввиду
+                <span
+                    onClick={() => dispatch(asyncGetAPI('Москва'))}>Москва?
+                </span>
+              </span>
+              : ''}
           {getWeather.main ?
               <>
                 <span className={classes.main__container__city}>{getWeather.name}</span>
@@ -61,14 +68,14 @@ const Main = () => {
                     <span>{weatherData.description}</span>
                   </div>
                   <div className={classes.main__container__weather__temp}>
-                    <p className={classes.main__container__weather__degree}>{weatherData.temp}°C</p>
-                    <p>Ощущается как {weatherData.tempFeel}°C</p>
+                    <p className={classes.main__container__weather__degree}>{weatherData.temp}<sup>°C</sup></p>
+                    <p>Ощущается как {weatherData.tempFeel}<sup>°C</sup></p>
                   </div>
                   <div className={classes.main__container__weather_info}>
                     <div className={classes.main__container__weather_info_value}>
                       <span>Скорость ветра:</span>
                       <img src={air} alt={'сила ветра'}/>
-                      <span>{weatherData.speed} км/ч</span>
+                      <span>{weatherData.speed} км<sup>ч</sup></span>
                     </div>
                     <div className={classes.main__container__weather_info_value}>
                       <span>Влажность:</span>
@@ -78,7 +85,7 @@ const Main = () => {
                   </div>
                 </div>
               </>
-              : <Loader/>}
+              : error}
         </div>
       </main>
   );
